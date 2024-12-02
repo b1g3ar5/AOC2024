@@ -1,0 +1,16 @@
+resolver:
+  url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/22/43.yaml
+
+packages:
+- .
+- ../../../Useful
+
+extra-deps:
+- smtp-mail-0.4.0.0
+
+# Override default flag values for local packages and extra-deps
+# flags: {}
+
+system-ghc: true
+install-ghc: false
+allow-newer: true
