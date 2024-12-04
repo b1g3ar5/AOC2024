@@ -2,22 +2,34 @@
 {-# LANGUAGE LambdaCase #-}
 
 module Utils (
+  -- Parsing in the file
   getLines
+  , getF
+  , getWords
+  , getTest -- gets .ex file
+
+  -- text manipulation
   , wordsWhen
   , splitOn
-  , clockTurn
-  , antiTurn
-  , splitWhen
   , chunksOf
-  , parseWith
+  , splitWhen
+  , wordsBy
+
+
+  -- ReadP parsing functions
+  , parseS
   , many
   , many1
   , sepBy
   , sepBy1
+  , endBy
+  , endBy1
   , satisfy
   , pInt
   , digit
   , isDigit
+
+  -- Coordinates
   , Coord
   , Coord3
   , scale3
@@ -35,45 +47,81 @@ module Utils (
   , leftOf, rightOf, above, below
   , directions4
   , directions8
+  , clockTurn
+  , antiTurn
+
+  -- from Data.Maybe
   , fromJust
   , fromMaybe
+  , isJust
+  , isNothing
+  , catMaybes
+  , mapMaybe
+  
+  -- from Data.List
   , sort
   , group
   , groupBy
   , sortBy 
+  , minimumBy
+  , maximumBy
   , sortOn
   , elemIndex 
   , findIndex 
   , nub
   , intercalate
   , transpose
+
+  -- from Data.Char
   , ord
   , chr
+
+  -- from Data.Bifunctor
   , bimap 
   , first
   , second
+  
+  -- from Data.Function
   , on
+
+  -- from Data.Either
   , lefts
   , rights
+  
+  -- from TimeIt
   , timeIt
-  , isJust
-  , isNothing
+  
+  -- from Debug.Trace
   , trace
+
+  -- some of my functions
   , floodFill
   , bfs
   , fromRight
-  , catMaybes
-  , mapMaybe
-  , comparing
   , levi
   , crossProduct
-  , traverse_
-  , ReadP
-  , parseS
-  , string
-  , swap
   , parseGridWith
-  , wordsBy
+
+
+  -- from Data.Ord
+  , comparing
+  , Down(Down)
+
+  -- from Data.Foldable
+  , traverse_
+
+  -- from Text.ParserCombinators.ReadP
+  , ReadP
+  , manyTill
+  , lookAhead
+  , string
+  , char
+  , isAscii
+  , anyChar
+
+  , swap
+
+  -- my recursion functions
   , ana
   , cata
   , hylo
@@ -82,19 +130,20 @@ module Utils (
   , Tree
   , ForestF(..)
   , Fix(..)
-  , Down(Down)
 ) where
 
-import Data.Char ( ord, isDigit, isSpace, chr )
+
+import Data.Char ( ord, isDigit, chr, isAscii )
 import Data.Tuple (swap)
 import Data.List.Split (chunksOf, wordsBy)
 import Data.Maybe ( fromJust, fromMaybe, isJust, isNothing, catMaybes, mapMaybe )
-import Data.List ( elemIndex, findIndex, group, groupBy, sort, sortBy, sortOn, nub, intercalate, transpose ) 
+import Data.List ( elemIndex, findIndex, group, groupBy, sort, sortBy, sortOn, nub, intercalate, transpose, minimumBy, maximumBy ) 
 import Data.Bifunctor ( Bifunctor(second, bimap, first) )
 import Data.Function ( on )
 import Data.Either ( lefts, rights, fromRight )
 import System.TimeIt ( timeIt )
-import Text.ParserCombinators.ReadP ( ReadP, many1, readP_to_S, satisfy, string, many, sepBy, sepBy1 )
+import Text.ParserCombinators.ReadP (ReadP, many1, readP_to_S, satisfy, string, many, sepBy, sepBy1, endBy, endBy1, char, manyTill, look)
+import Text.Parser.LookAhead
 import Data.Hashable ( Hashable )
 import Debug.Trace (trace)
 import qualified Data.Set as Set
@@ -110,14 +159,16 @@ import Data.Ord ( comparing, Down(Down) )
 
 ------------ GET THE INPUT FROM FILE ------------------
 
+-- Gets the .in file from AOC
 getF :: (String -> a) -> Int -> IO a
 getF f n = do
   s <- readFile $ "./data/Day" ++ show n ++ ".in"
   return $ f s
 
 
-getT :: (String -> a) -> Int -> IO a
-getT f n = do
+-- Gets an alternative test file with .ex ending
+getTest :: (String -> a) -> Int -> IO a
+getTest f n = do
   s <- readFile $ "./data/Day" ++ show n ++ ".ex"
   return $ f s
 
@@ -132,10 +183,6 @@ getWords = getF words
 
 getLines :: Int -> IO [String]
 getLines = getF lines
-
-
-getTest :: Int -> IO [String]
-getTest = getT lines
 
 
 -- splits a list on an item and deletes the item
@@ -171,13 +218,6 @@ parseS :: ReadP a -> ReadS a
 parseS = readP_to_S
 
 
-parseWith :: ReadP a -> String -> a
-parseWith p s = case [ a | (a,t) <- parseS p s, all isSpace t] of
-                  [a] -> a
-                  [] -> error "No parse"
-                  _ -> error "Ambiguous parse"
-
-
 digit :: ReadP Char
 digit = satisfy (`elem` "0123456789")
 
@@ -186,6 +226,9 @@ pInt = do
   n <- many1 digit
   return $ read n
 
+
+anyChar :: ReadP Char
+anyChar = satisfy isAscii
 
 ------------------ VARIOUS UTILITY FUNCTIONS --------------------
 

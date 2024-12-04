@@ -22,6 +22,8 @@ dependencies:
 - timeit
 - unordered-containers
 - vector
+- parsers
+- array
 
 ghc-options:
 - -Wall

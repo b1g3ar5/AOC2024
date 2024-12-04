@@ -5,7 +5,7 @@ import Data.Map as M
 
 
 parse :: String -> (Int, Int)
-parse s = (read $ p!!0, read $ p!!1)
+parse s = (read $ head p, read $ last p)
   where
     p = words s
 
