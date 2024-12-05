@@ -5,7 +5,7 @@ import Data.Map (Map)
 import Data.Map qualified as M
 
 
--- Instead of checking bounds - use default lookup not in "XMAS"
+-- Instead of checking bounds - use default lookup (not in "XMAS"!)
 (!?) :: Ord k => Map k Char -> k -> Char
 (!?) mp ix = M.findWithDefault '*' ix mp
 
@@ -16,16 +16,18 @@ find1 mp = go 0 $ M.keys mp
     go acc [] = acc
     go acc (ix:ixs) = go (acc + n) ixs
       where
+        -- Check for XMAS in all 8 directions
         n = length $ filter (=="XMAS") $ wd ix <$> directions8
 
+        -- Get the word from a position in a direction
         wd :: Coord -> Coord -> String
         wd pos dir = (mp !?) <$> [pos, pos+dir, pos+dir+dir, pos+dir+dir+dir]
 
 
 find2 :: Map Coord Char -> Int
-find2 mp = length $ filter id $ go <$> M.keys mp
+find2 mp = length $ filter id $ check <$> M.keys mp
   where
-    go (x,y) = (mp M.! (x,y) == 'A') && p
+    check (x,y) = (mp M.! (x,y) == 'A') && p
       where
         p = [mp !? (x+1,y+1), mp !? (x-1,y-1), mp !? (x+1,y-1), mp !? (x-1,y+1)]
             `elem` ["MSMS","MSSM","SMMS","SMSM"]

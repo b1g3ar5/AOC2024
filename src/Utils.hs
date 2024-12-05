@@ -71,6 +71,7 @@ module Utils (
   , nub
   , intercalate
   , transpose
+  , partition
 
   -- from Data.Char
   , ord
@@ -101,6 +102,8 @@ module Utils (
   , levi
   , crossProduct
   , parseGridWith
+  , steadyState
+  , steadyStateM
 
 
   -- from Data.Ord
@@ -137,7 +140,7 @@ import Data.Char ( ord, isDigit, chr, isAscii )
 import Data.Tuple (swap)
 import Data.List.Split (chunksOf, wordsBy)
 import Data.Maybe ( fromJust, fromMaybe, isJust, isNothing, catMaybes, mapMaybe )
-import Data.List ( elemIndex, findIndex, group, groupBy, sort, sortBy, sortOn, nub, intercalate, transpose, minimumBy, maximumBy ) 
+import Data.List -- ( elemIndex, findIndex, group, groupBy, sort, sortBy, sortOn, nub, intercalate, transpose, minimumBy, maximumBy ) 
 import Data.Bifunctor ( Bifunctor(second, bimap, first) )
 import Data.Function ( on )
 import Data.Either ( lefts, rights, fromRight )
@@ -248,10 +251,10 @@ steadyState :: Eq a => (a -> a) -> a -> a
 steadyState f x = if f x == x then x else steadyState f (f x)
 
 
-steadyState' :: Eq a => (a -> Maybe a) -> a -> Maybe a
-steadyState' f x = case f x of
+steadyStateM :: Eq a => (a -> Maybe a) -> a -> Maybe a
+steadyStateM f x = case f x of
                      Nothing -> Just x
-                     Just y -> steadyState' f y
+                     Just y -> steadyStateM f y
 
 
 

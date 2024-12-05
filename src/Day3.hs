@@ -1,7 +1,8 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 module Day3(day3) where
 
 import Utils
-
 
 -- Just less error prone using a parser...
 -- It's important with ReadP to make the parsers strict - ie. they fail a lot
@@ -51,7 +52,7 @@ day3 :: IO ()
 day3 = do
   ss <- getF id 3
 
-  putStrLn $ "Day3: part2: " ++ show (parse1 0 ss)
+  putStrLn $ "Day3: part1: " ++ show (parse1 0 ss)
   putStrLn $ "Day3: part2: " ++ show (parse2 True 0 ss)
 
   return ()
