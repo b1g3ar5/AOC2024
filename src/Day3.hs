@@ -4,9 +4,8 @@ module Day3(day3) where
 
 import Utils
 
--- Just less error prone using a parser...
--- It's important with ReadP to make the parsers strict - ie. they fail a lot
--- so put in the ')' on the end etc.
+
+-- I tried without a parser with regex etc - but failed
 parseMul :: ReadP Int
 parseMul = do
   _ <- string "mul("
@@ -38,7 +37,6 @@ parse2 False acc s
   | otherwise = parse2 False acc $ tail s
 parse2 True acc s
   | "don't()" == take 7 s = parse2 False acc $ drop 7 s
-  | "do()" == take 4 s = parse2 True acc $ drop 4 s
   | "mul(" == take 4 s = if null p then parse2 True acc (drop 4 s) else parse2 True (acc + n) leftover
   | otherwise = parse2 True acc $ tail s
   where

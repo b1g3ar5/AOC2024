@@ -1,6 +1,6 @@
 module Day5(day5) where
 
-import Utils
+import Utils (partition, getLines, splitOn, steadyState)
 import Data.Bimap (Bimap)
 import Data.Bimap qualified as M
 
@@ -9,7 +9,6 @@ parse :: [String] -> ([Rule], [[Page]])
 parse s = (ws, (read <$>). splitOn ',' <$> (ps!!1))
   where
     ps = splitOn "" s
-    ws :: [(Int, Int)]
     ws = (\l -> (read $ take 2 l, read $ drop 3 l)) <$> head ps
 
 
@@ -33,13 +32,13 @@ centre pages = pages M.!> (M.size pages `div` 2)
 
 -- Keep sorting until no swaps are made
 sortPages :: [Rule] -> Bimap Page Int -> Bimap Page Int
-sortPages rules = steadyState f
+sortPages rules = steadyState swapRules
   where
-    f :: Bimap Page Int -> Bimap Page Int
-    f m = foldl (\mp rule -> if checkRule rule mp then
+    swapRules :: Bimap Page Int -> Bimap Page Int
+    swapRules m = foldl (\mp rule -> if checkRule rule mp then
                                 mp else
                                 swapPages rule mp
-                ) m rules
+                           ) m rules
 
 
 swapPages :: Rule -> Bimap Page Int -> Bimap Page Int
@@ -52,9 +51,9 @@ day5 = do
   let (rules, updates) = parse ss
       updateMaps = (\ps -> M.fromList $ zip ps [0..]) <$> updates
       (ordered, notOrdered) = partition (isOrdered rules) updateMaps
-      sorted = sortPages rules <$> notOrdered
+      fixed = sortPages rules <$> notOrdered
 
   putStrLn $ "Day5: part1: " ++ show (sum $ centre <$> ordered)
-  putStrLn $ "Day5: part2: " ++ show (sum $ centre <$> sorted)
+  putStrLn $ "Day5: part2: " ++ show (sum $ centre <$> fixed)
 
   return ()

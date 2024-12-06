@@ -24,6 +24,10 @@ dependencies:
 - parsers
 - array
 - bimap
+- comonad
+- regex-applicative
+- scientific
+#- semiring-num
 
 ghc-options:
 - -Wall

@@ -1,42 +1,38 @@
 module Day4(day4) where
 
 import Utils
-import Data.Map (Map)
-import Data.Map qualified as M
+import TotalMap (TMap)
+import TotalMap qualified as T
 
 
--- Instead of checking bounds - use default lookup (not in "XMAS"!)
-(!?) :: Ord k => Map k Char -> k -> Char
-(!?) mp ix = M.findWithDefault '*' ix mp
-
-
-find1 :: Map Coord Char -> Int
-find1 mp = go 0 $ M.keys mp
+find1 :: TMap Coord Char -> Int
+find1 mp = go 0 $ T.keys mp
   where
     go acc [] = acc
     go acc (ix:ixs) = go (acc + n) ixs
       where
         -- Check for XMAS in all 8 directions
-        n = length $ filter (=="XMAS") $ wd ix <$> directions8
+        n = length $ filter (=="XMAS") $ getWord ix <$> directions8
 
         -- Get the word from a position in a direction
-        wd :: Coord -> Coord -> String
-        wd pos dir = (mp !?) <$> [pos, pos+dir, pos+dir+dir, pos+dir+dir+dir]
+        getWord :: Coord -> Coord -> String
+        getWord pos dir = (mp T.!) <$> [pos, pos+dir, pos+dir+dir, pos+dir+dir+dir]
 
 
-find2 :: Map Coord Char -> Int
-find2 mp = length $ filter id $ check <$> M.keys mp
+find2 :: TMap Coord Char -> Int
+find2 mp = length $ filter check $ T.keys mp
   where
-    check (x,y) = (mp M.! (x,y) == 'A') && p
+    check (x,y) = (mp T.! (x,y) == 'A') && p
       where
-        p = [mp !? (x+1,y+1), mp !? (x-1,y-1), mp !? (x+1,y-1), mp !? (x-1,y+1)]
+        -- 4 alternatives for the wings of the cross
+        p = [mp T.! (x+1,y+1), mp T.! (x-1,y-1), mp T.! (x+1,y-1), mp T.! (x-1,y+1)]
             `elem` ["MSMS","MSSM","SMMS","SMSM"]
 
 
 day4 :: IO ()
 day4 = do
   ss <- getLines 4
-  let g = M.fromList $ parseGridWith id ss
+  let g = T.fromList '*' $ parseGridWith id ss
 
   putStrLn $ "Day4: part1: " ++ show (find1 g)
   putStrLn $ "Day4: part2: " ++ show (find2 g)

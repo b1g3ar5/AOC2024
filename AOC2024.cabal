@@ -43,6 +43,7 @@ library
       Day24
       Day25
       Day3
+      Day3_RE
       Day4
       Day5
       Day6
@@ -51,6 +52,7 @@ library
       Day9
       Lib
       Queue
+      TotalMap
       Utils
   other-modules:
       Paths_AOC2024
@@ -65,9 +67,12 @@ library
       array
     , base >=4.7 && <5
     , bimap
+    , comonad
     , containers
     , hashable
     , parsers
+    , regex-applicative
+    , scientific
     , split
     , timeit
     , unordered-containers
@@ -90,9 +95,12 @@ executable AOC2024-exe
     , array
     , base >=4.7 && <5
     , bimap
+    , comonad
     , containers
     , hashable
     , parsers
+    , regex-applicative
+    , scientific
     , split
     , timeit
     , unordered-containers
@@ -116,9 +124,12 @@ test-suite AOC2024-test
     , array
     , base >=4.7 && <5
     , bimap
+    , comonad
     , containers
     , hashable
     , parsers
+    , regex-applicative
+    , scientific
     , split
     , timeit
     , unordered-containers

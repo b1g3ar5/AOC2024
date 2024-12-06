@@ -1,7 +1,8 @@
 module Day1(day1) where
 
 import Utils
-import Data.Map as M
+import TotalMap qualified as T
+import TotalMap()
 
 
 parse :: String -> (Int, Int)
@@ -14,10 +15,10 @@ day1 :: IO ()
 day1 = do
   ss <- getLines 1
   let (list1, list2) = bimap sort sort $ unzip $ parse <$> ss
-      map2 :: M.Map Int Int
-      map2 = M.fromList $ (\gp -> (head gp, length gp)) <$> group list2
+      frequency :: T.TMap Int Int
+      frequency = T.fromList 0 $ (\gp -> (head gp, length gp)) <$> group list2
 
   putStrLn $ "Day1: part1: " ++ show (sum $ zipWith (\x y -> abs $ x-y) list1 list2)
-  putStrLn $ "Day1: part2: " ++ show (sum $ (\x -> x * M.findWithDefault 0 x map2) <$> list1)
+  putStrLn $ "Day1: part2: " ++ show (sum $ (\x -> x * frequency T.! x) <$> list1)
 
   return ()
