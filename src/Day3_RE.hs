@@ -27,12 +27,12 @@ pmul = combine <$> string "mul(" <*> pint <*> sym ',' <*> pint <*> sym ')'
 p1 :: RE  Char [Int]
 p1 = some (many (psym (/= 'm')) *> pmul) <* many (psym (/='\n'))
 
-p3 :: RE  Char [Int]
-p3 = many (psym (/='m')) *> some (pmul <* many (psym (/= 'm'))) <* many (psym (/='\n'))
-
 
 p2 :: RE Char String
 p2 = some (many (psym (/='a')) *> sym 'a') <* many (psym (/='a'))
+
+p3 :: RE  Char [Int]
+p3 = many (psym (/='m')) *> some (pmul <* many (psym (/= 'm'))) -- <* many (psym (/='\n'))
 
 p4 :: RE Char String
 p4 = many (psym (/='a')) *> some (sym 'a' <* many (psym (/='a')))
@@ -42,8 +42,8 @@ day3_RE = do
   ss <- getF id 3
 
   putStrLn $ "1: " ++ show (test =~ p1)
-  putStrLn $ "3: " ++ show (test =~ p3)
   putStrLn $ "2: " ++ show ("xxabbbabbb" =~ p2)
+  putStrLn $ "3: " ++ show (test =~ p3)
   putStrLn $ "4: " ++ show ("xxabxyzbabccacbb" =~ p4)
 
   return ()
