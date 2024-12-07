@@ -21,17 +21,27 @@ data Tree a  r = Leaf a | Node a r deriving (Functor, Show)
 data RTree a  r = Node1 a [r] deriving (Functor, Show)
 
 
+-- The Tree goes forwards, so the coalgebra is easy
+-- just put the numbers in the nodes
 coalgF :: [Int] -> Tree Int [Int]
 coalgF [] = error "I don't think we should get here"
 coalgF [x] = Leaf x
 coalgF (x:xs) = Node x xs
 
 
+-- The algrebra applies the ops to the node values
+-- and concatenates all the results
 algF :: [Int -> Int -> Int] -> Tree Int [Int] -> [Int]
 algF _ (Leaf x) = [x]
 algF ops (Node x xs) = ($ x) <$> ops <*> xs
 
 
+-- In the backwards tree we apply the inverse of the operations
+-- to the target to get a smaller target for each of the children
+-- So, there will only be a multiplication child node if the target
+-- is divisible by the element (first on the remaining list)
+-- Also there will only be a concatenation node if the element
+-- is there on the end of the target.
 coalgB :: Bool -> (Int, [Int]) -> RTree Int (Int, [Int])
 coalgB _ (_,[]) = error "I don't think we should get here"
 coalgB _ (t, [x]) = Node1 (if t==x then t else 0) []
@@ -54,6 +64,9 @@ unConcat t x
     go (tt:ts) (xx:xs)= if tt==xx then go ts xs else 0
 
 
+-- For backwards the algebra is easy - return the nodes 
+-- target only if one of the children suceeded in making
+-- the target
 algB :: RTree Int Int -> Int
 algB (Node1 n []) = n -- a leaf
 algB (Node1 n xs) = if any (/=0) xs then n else 0
@@ -63,6 +76,8 @@ printTree :: RTree Int String -> String
 printTree (Node1 x xs) = "Node1: " ++ show x ++ ": " ++ intercalate ", " xs
 
 
+-- The forward check sees if the target is anywhere in the
+-- set of results  
 checkF :: [Int ->Int -> Int] -> Int -> [Int] -> Int
 checkF ops target xs = if target `elem` res then target else 0
   where
