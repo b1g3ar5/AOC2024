@@ -72,6 +72,7 @@ module Utils (
   , intercalate
   , transpose
   , partition
+  , unfoldr
 
   -- from Data.Char
   , ord
