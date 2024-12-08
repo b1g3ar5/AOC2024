@@ -22,27 +22,49 @@ patrol (rows, cols) obstacles = go []
       | otherwise = go (p:acc) (p+d, d)
 
 
+-- Simple but a bit slow (4sec)
 countLoops :: (Coord, Coord) -> (Int, Int) -> HashSet Coord -> [Coord]
-countLoops pd bounds obstacles = filter (\q -> isLoop pd bounds (q `S.insert` obstacles)) visited
+countLoops pd bounds obstacles = filter (\newObs -> isLoop S.empty pd bounds (newObs `S.insert` obstacles)) visited
   where
     visited = patrol bounds obstacles pd
 
 
-isLoop:: (Coord, Coord) -> Coord -> HashSet Coord -> Bool
-isLoop pd (rows, cols) obstacles = go S.empty pd
+-- HashSet for the lookups is a bit quicker
+isLoop:: HashSet (Coord, Coord) -> (Coord, Coord) -> Coord -> HashSet Coord -> Bool
+isLoop setVisited start (rows, cols) obstacles = go setVisited start
   where
-    go acc (p@(px,py),d)
-      | (p, d) `S.member` acc = True
+    go visited (p@(px,py),d)
+      | (p, d) `S.member` visited = True
       | px<0 || px==cols || py<0 || py==rows = False
-      | (p+d) `S.member` obstacles = go acc (p, clockTurn d)
-      | otherwise = go (S.insert (p, d) acc) (p+d,d)
+      | (p+d) `S.member` obstacles = go visited (p, clockTurn d)
+      | otherwise = go (S.insert (p, d) visited) (p+d,d)
+
+
+patrol2 :: (Int, Int) -> HashSet Coord -> ((Int, Int), Coord) -> Int
+patrol2 bounds@(rows, cols) obstacles start = S.size $ go S.empty S.empty start
+  where
+    go visited loops (p@(x,y), d)
+      | x<0 || x==cols || y<0 || y==rows = loops
+      | nextPos `S.member` obstacles = go visited loops (p, clockTurn d)
+      | otherwise = go ((p,d) `S.insert` visited) (if allowed nextPos && nextIsLoop then nextPos `S.insert` loops else loops) (nextPos, d)
+      where
+        nextPos = p+d
+        -- Not out of bounds and not visited
+        allowed p@(x,y) = (x>=0) && (y>=0) && (x<cols) && (y<rows)
+                        && (p `notElem` (fst <$> S.toList visited))
+        nextIsLoop = isLoop visited (p,d) bounds (nextPos `S.insert` obstacles) 
+
 
 day6 :: IO ()
 day6 = do
-  ss <- getLines 6
+  ss <- getF lines 6
   let (start, obstacles, size) = parse ss
+      l1 = countLoops (start, up) size obstacles
+      l2 = patrol2 size obstacles (start, up)
+      route = patrol size obstacles (start, up)
+      rd = (\(p,from) -> (p, p-from)) <$> zip (tail route) route
 
-  putStrLn $ "Day6: part1: " ++ show (length $ patrol size obstacles (start, up))
-  putStrLn $ "Day6: part2: " ++ show (length $ countLoops (start, up) size obstacles)
+  putStrLn $ "Day6: part1: " ++ show (length route)
+  putStrLn $ "Day6: part1: " ++ show (patrol2 size obstacles (start, up))
 
   return ()
