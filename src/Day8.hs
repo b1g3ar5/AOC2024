@@ -22,12 +22,12 @@ nodes1 (x1,y1) (x2,y2) =  [(2*x2-x1, 2*y2-y1), (2*x1-x2, 2*y1-y2)]
 
 
 nodes2 :: Coord -> Coord -> [Coord]
-nodes2 p q = (\n -> p + scale n (diff p q )) <$> [(-50)..50]
+nodes2 p q = [p + scale n (diff p q) | n <- [-50 .. 50]]
 
 
 -- Calculates the lowest divisor of the vector between 2 points
 diff :: Coord -> Coord -> Coord
-diff p q = (dx `div` d, dy `div` d)
+diff p q = (dx `quot` d, dy `quot` d)
   where
     (dx,dy) = p-q
     d = gcd dx dy

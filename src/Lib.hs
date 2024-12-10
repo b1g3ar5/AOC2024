@@ -12,6 +12,7 @@ import Day6
 import Day7
 import Day8
 import Day9
+import Day10
 
 libMain :: IO ()
 libMain = do 
@@ -24,4 +25,5 @@ libMain = do
   --day6
   --day7
   --day8
-  day9
+  --day9
+  day10
