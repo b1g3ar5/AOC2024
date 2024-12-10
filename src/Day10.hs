@@ -19,6 +19,7 @@ inbounds (x,y) = x>=0 && y>=0 && x < cols && y < rows
 type Grid = Map Coord Int
 type Path = Set Coord
 
+
 coalg :: (Coord, Grid, Path) -> TreeF (Coord, Int) (Coord, Grid, Path)
 coalg (pos, g, p)
   | null ns = NodeF (pos, value) []
@@ -27,10 +28,12 @@ coalg (pos, g, p)
     value = g M.! pos
     ns = filter (\n -> inbounds n && g M.! n == value + 1) (neighbours4 pos)
 
+
 alg1 :: TreeF (Coord, Int) (Set Coord) -> Set Coord
 alg1 (NodeF (pos, value) ns)
   | null ns = if value == 9 then S.singleton pos else S.empty
   | otherwise = S.unions ns
+
 
 alg2 :: TreeF (Coord, Int) Int -> Int
 alg2 (NodeF (_, value) ns)
