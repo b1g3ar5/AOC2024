@@ -1,8 +1,7 @@
 module Day7(day7) where
 
 import Prelude hiding ((||))
-import Prelude qualified as P
-import Utils ( getLines, hylo, ana, splitOn, intercalate )
+import Utils ( getLines, hylo, splitOn, intercalate )
 
 
 parse :: String -> (Int, [Int])
@@ -21,21 +20,6 @@ data Tree a  r = Leaf a | Node a r deriving (Functor, Show)
 data RTree a  r = Node1 a [r] deriving (Functor, Show)
 
 
--- The Tree goes forwards, so the coalgebra is easy
--- just put the numbers in the nodes
-coalgF :: [Int] -> Tree Int [Int]
-coalgF [] = error "I don't think we should get here"
-coalgF [x] = Leaf x
-coalgF (x:xs) = Node x xs
-
-
--- The algrebra applies the ops to the node values
--- and concatenates all the results
-algF :: [Int -> Int -> Int] -> Tree Int [Int] -> [Int]
-algF _ (Leaf x) = [x]
-algF ops (Node x xs) = ($ x) <$> ops <*> xs
-
-
 -- In the backwards tree we apply the inverse of the operations
 -- to the target to get a smaller target for each of the children
 -- So, there will only be a multiplication child node if the target
@@ -46,7 +30,7 @@ coalgB :: Bool -> (Int, [Int]) -> RTree Int (Int, [Int])
 coalgB _ (_,[]) = error "I don't think we should get here"
 coalgB _ (t, [x]) = Node1 (if t==x then t else 0) []
 coalgB isPart2 (t, x:xs)
-  | t<x = Node1 0 []
+  | t < x = Node1 0 []
   | otherwise = Node1 t ns
   where
     (q,r) = t `quotRem` x
@@ -66,7 +50,7 @@ unConcat t x
 
 -- For backwards the algebra is easy - return the nodes 
 -- target only if one of the children suceeded in making
--- the target
+-- the sub target
 algB :: RTree Int Int -> Int
 algB (Node1 n []) = n -- a leaf
 algB (Node1 n xs) = if any (/=0) xs then n else 0
@@ -74,14 +58,6 @@ algB (Node1 n xs) = if any (/=0) xs then n else 0
 
 printTree :: RTree Int String -> String
 printTree (Node1 x xs) = "Node1: " ++ show x ++ ": " ++ intercalate ", " xs
-
-
--- The forward check sees if the target is anywhere in the
--- set of results  
-checkF :: [Int ->Int -> Int] -> Int -> [Int] -> Int
-checkF ops target xs = if target `elem` res then target else 0
-  where
-    res = hylo (algF ops) coalgF $ reverse xs
 
 
 checkB :: Bool -> Int -> [Int] -> Int
@@ -93,12 +69,27 @@ day7 = do
   ss <- getLines 7
   let g = parse <$> ss
 
-  --putStrLn $ "Day7: part1: " ++ show (sum $ uncurry (checkF [(+), (*)]) <$> g)
-  --putStrLn $ "Day7: part2: " ++ show (sum $ uncurry (checkF [(+), (*), (||)]) <$> g)
   putStrLn $ "Day7: part2: " ++ show (sum $ uncurry (checkB False) <$> g)
   putStrLn $ "Day7: part2: " ++ show (sum $ uncurry (checkB True) <$> g)
 
   return ()
+
+-- Forwards tree, much slower than backwards
+
+-- The Tree goes forwards, so the coalgebra is easy
+-- just put the numbers in the nodes
+coalgF :: [Int] -> Tree Int [Int]
+coalgF [] = error "I don't think we should get here"
+coalgF [x] = Leaf x
+coalgF (x:xs) = Node x xs
+
+
+-- The algrebra applies the ops to the node values
+-- and concatenates all the results
+algF :: [Int -> Int -> Int] -> Tree Int [Int] -> [Int]
+algF _ (Leaf x) = [x]
+algF ops (Node x xs) = ($ x) <$> ops <*> xs
+
 
 
 test = ["190: 10 19"

@@ -23,7 +23,7 @@ isSafe list
 -- All the lists with one item removed
 remove1 :: [a] -> [[a]]
 remove1 [] = []
-remove1 (x:xs) = xs : ((x :) <$> remove1 xs)
+remove1 (x:xs) = xs : [ x:ys | ys <- remove1 xs] 
 
 
 day2 :: IO ()
@@ -31,7 +31,7 @@ day2 = do
   ss <- getLines 2
   let g = parse <$> ss
 
-  putStrLn $ "Day2: part1: " ++ show ( length $ filter id $ isSafe <$> g)
-  putStrLn $ "Day2: part2: " ++ show ( length $ filter id $ any isSafe . remove1 <$> g)
+  putStrLn $ "Day2: part1: " ++ show ( length $ filter isSafe g)
+  putStrLn $ "Day2: part2: " ++ show ( length $ filter (any isSafe) $ remove1 <$> g)
 
   return ()

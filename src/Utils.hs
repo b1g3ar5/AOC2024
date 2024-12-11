@@ -73,6 +73,7 @@ module Utils (
   , transpose
   , partition
   , unfoldr
+  , foldl'
 
   -- from Data.Char
   , ord

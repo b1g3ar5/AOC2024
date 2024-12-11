@@ -1,6 +1,6 @@
 module Day5(day5) where
 
-import Utils (partition, getLines, splitOn, steadyState)
+import Utils (partition, getLines, splitOn, steadyState, foldl')
 import Data.Bimap (Bimap)
 import Data.Bimap qualified as M
 
@@ -35,10 +35,10 @@ sortPages :: [Rule] -> Bimap Page Int -> Bimap Page Int
 sortPages rules = steadyState swapRules
   where
     swapRules :: Bimap Page Int -> Bimap Page Int
-    swapRules m = foldl (\mp rule -> if checkRule rule mp then
-                                mp else
-                                swapPages rule mp
-                           ) m rules
+    swapRules m = foldl' (\mp rule -> if checkRule rule mp then
+                                        mp else
+                                        swapPages rule mp
+                         ) m rules
 
 
 swapPages :: Rule -> Bimap Page Int -> Bimap Page Int
