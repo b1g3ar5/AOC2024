@@ -27,7 +27,7 @@ dependencies:
 - comonad
 - regex-applicative
 - scientific
-#- semiring-num
+- MemoTrie
 
 ghc-options:
 - -Wall

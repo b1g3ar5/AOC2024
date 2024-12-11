@@ -1,62 +1,33 @@
 module Day11(day11) where
 
-
-data Tree a = Tree (Tree a) a (Tree a)
-
-instance Functor Tree where
-    fmap :: (a -> b) -> Tree a -> Tree b
-    fmap f (Tree l m r) = Tree (fmap f l) (f m) (fmap f r)
-
-nats :: Tree Int
-nats = go 0 1
-  where
-    go !n !s = Tree (go l s') n (go r s')
-        where
-          l = n + s
-          r = l + s
-          s' = s * 2
-
-index :: Show a => Tree a -> Int -> a
-index (Tree _ m _) 0 = m
-index (Tree l _ r) n = case (n - 1) `divMod` 2 of
-                         (q,0) -> index l q
-                         (q,1) -> index r q
-                         _ -> error "This shouldn't happen"
+import Utils (times, timeIt, swap)
+import Data.IntMap qualified as M
+import Data.MemoTrie
 
 
 parse :: String -> [Int]
 parse = (read <$>) .  words
 
 
-type Stone = Int
-type Iters = Int
-
-decode :: Int -> (Stone, Iters)
-decode si = si `quotRem` 100
-
-encode :: (Stone, Iters) -> Int
-encode (s,i) = s * 100 + i
+-- Using IntMap - the frequency of the stone
+type StoneCount = M.IntMap Int
 
 
-changeStoneF :: (Int -> Int) -> Int -> Int
-changeStoneF f sn
-  | n == 0 = 1
-  | s == 0 = f $ encode (1, n-1)
-  | even len  = f (encode (leftShone, n-1))  + f (encode (rightStone, n-1))
-  | otherwise = f $ encode (2024 * s, n-1)
+-- Keep a count of each time a stone/number occurs
+-- so we only calculate once...
+nextMap :: StoneCount -> StoneCount
+nextMap sc = M.fromListWith (+) [ (s', n) | (s,n) <- M.assocs sc, s' <- nextStone s]
+
+
+nextStone :: Int -> [Int]
+nextStone 0 = [1]
+nextStone s
+  | even len  = [leftShone, rightStone]
+  | otherwise = [2024 * s]
   where
-    (s,n) = decode sn
     ss = show s
     len = length ss
-    leftShone = read $ take (len `quot` 2) ss
-    rightStone = read $ drop (len `quot` 2) ss
-
-
-stoneTree :: Tree Int
-stoneTree = fmap (changeStoneF fastStone) nats
-
-fastStone :: Int -> Int
-fastStone = index stoneTree
+    (leftShone, rightStone) = s `quotRem` (10 ^ (len `quot` 2))
 
 
 day11 :: IO ()
@@ -64,9 +35,23 @@ day11 = do
   let s = "0 44 175060 3442 593 54398 9 8101095"
   let g = parse s
 
-  putStrLn $ "Day11: part2: " ++ show (sum $ fastStone . encode . (, 25) <$> g)
-  putStrLn $ "Day11: part2: " ++ show (sum $ fastStone . encode . (, 75) <$> g)
+  putStrLn $ "Day11: part1: " ++ show (sum $ times 25 nextMap $ M.fromList $ (,1) <$> g)
+  putStrLn $ "Day11: part2: " ++ show (sum $ times 75 nextMap $ M.fromList $ (,1) <$> g)
+  timeIt $ putStrLn $ "Day11: part1: " ++ show (sum $ memo2 changeStone 25 <$> g)
+  timeIt $ putStrLn $ "Day11: part1: " ++ show (sum $ memo2 changeStone 75 <$> g)
 
   return ()
 
+
+-- Takes the steps and a stone and returns the number of stones
+changeStone :: Int -> Int -> Int
+changeStone steps stone
+  | steps == 0 = 1
+  | stone == 0 = memo2 changeStone (steps-1) 1
+  | even len  = memo2 changeStone (steps-1) leftShone  + memo2 changeStone (steps-1) rightStone
+  | otherwise = memo2 changeStone (steps-1) (2024 * stone)
+  where
+    stoneString = show stone
+    len = length stoneString
+    (leftShone, rightStone) = stone `quotRem` (10 ^ (len `quot` 2))
 

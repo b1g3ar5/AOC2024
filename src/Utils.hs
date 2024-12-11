@@ -106,7 +106,7 @@ module Utils (
   , parseGridWith
   , steadyState
   , steadyStateM
-
+  , times
 
   -- from Data.Ord
   , comparing
@@ -202,7 +202,6 @@ splitOn s = go [] []
       | otherwise = go acc (next ++ [l]) ls
 
 
-
 wordsWhen     :: (a -> Bool) -> [a] -> [[a]]
 wordsWhen p s =  case dropWhile p s of
                       [] -> []
@@ -236,6 +235,13 @@ anyChar :: ReadP Char
 anyChar = satisfy isAscii
 
 ------------------ VARIOUS UTILITY FUNCTIONS --------------------
+
+
+-- Strict...
+times :: Int -> (a -> a) -> a -> a
+times n f x
+  | n <= 0    = x
+  | otherwise = times (n-1) f $! f x
 
 
 binSearch :: Integral t => (t -> Bool) -> t -> t -> t
