@@ -64,7 +64,7 @@ day7 = do
   ss <- getLines 7
   let g = parse <$> ss
 
-  putStrLn $ "Day7: part2: " ++ show (sum $ uncurry (checkB False) <$> g)
+  putStrLn $ "Day7: part1: " ++ show (sum $ uncurry (checkB False) <$> g)
   putStrLn $ "Day7: part2: " ++ show (sum $ uncurry (checkB True) <$> g)
 
   return ()

@@ -52,7 +52,7 @@ day10 = do
       g = M.fromList $ parseGridWith (\c -> read [c] ) ss
       starts = M.keys $ M.filter (==0) g
 
-  putStrLn $ "Day10: part2: " ++ show (sum $ (\p -> S.size $ hylo alg1 coalg (p, g, S.empty)) <$> starts )
+  putStrLn $ "Day10: part1: " ++ show (sum $ (\p -> S.size $ hylo alg1 coalg (p, g, S.empty)) <$> starts )
   putStrLn $ "Day10: part2: " ++ show (sum $ (\p -> hylo alg2 coalg (p, g, S.empty)) <$> starts )
 
   return ()

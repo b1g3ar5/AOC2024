@@ -40,6 +40,6 @@ day13 = do
       g2 = addPrize 10000000000000 <$> g1
 
   putStrLn $ "Day13: part1: " ++ show (sum (sum . solveMachine <$> g1))
-  putStrLn $ "Day13: part1: " ++ show (sum (sum . solveMachine <$> g2))
+  putStrLn $ "Day13: part2: " ++ show (sum (sum . solveMachine <$> g2))
 
   return ()

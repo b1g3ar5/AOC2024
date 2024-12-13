@@ -51,6 +51,6 @@ day6 = do
   let (start, obstacles, size) = parse ss
 
   putStrLn $ "Day6: part1: " ++ show (patrol1 size obstacles (start, up))
-  putStrLn $ "Day6: part1: " ++ show (patrol2 size obstacles (start, up))
+  putStrLn $ "Day6: part2: " ++ show (patrol2 size obstacles (start, up))
 
   return ()

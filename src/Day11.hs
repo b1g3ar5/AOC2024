@@ -31,7 +31,7 @@ day11 = do
   let g = parse s
 
   putStrLn $ "Day11: part1: " ++ show (sum $ memo2 changeStone 25 <$> g)
-  putStrLn $ "Day11: part1: " ++ show (sum $ memo2 changeStone 75 <$> g)
+  putStrLn $ "Day11: part2: " ++ show (sum $ memo2 changeStone 75 <$> g)
   --putStrLn $ "Day11: part1: " ++ show (sum $ times 25 nextMap $ M.fromList $ (,1) <$> g)
   --putStrLn $ "Day11: part2: " ++ show (sum $ times 100 nextMap $ M.fromList $ (,1) <$> g)
 
