@@ -7,6 +7,8 @@ module Utils (
   , getF
   , getWords
   , getTest -- gets .ex file
+  , getNumbers
+  , numbers
 
   -- text manipulation
   , wordsWhen
@@ -74,6 +76,7 @@ module Utils (
   , partition
   , unfoldr
   , foldl'
+  , (\\)
 
   -- from Data.Char
   , ord
@@ -100,6 +103,8 @@ module Utils (
   -- some of my functions
   , floodFill
   , bfs
+  , dfs
+  , dfsSet
   , fromRight
   , levi
   , crossProduct
@@ -127,10 +132,13 @@ module Utils (
   , swap
 
   -- my recursion functions
+  , Algebra
+  , Coalgebra
   , ana
   , cata
   , hylo
   , TreeF(..)
+  , ListF(..)
   , TreeF'(..)
   , Tree
   , ForestF(..)
@@ -151,7 +159,7 @@ import Text.ParserCombinators.ReadP (ReadP, many1, readP_to_S, satisfy, string, 
 import Text.Parser.LookAhead
 import Data.Hashable ( Hashable )
 import Debug.Trace (trace)
-import qualified Data.Set as Set
+import qualified Data.Set as S
 import qualified Queue as Q
 import Data.Foldable ( Foldable(foldl'), traverse_ )
 import Data.Ord ( comparing, Down(Down) )
@@ -189,6 +197,19 @@ getWords = getF words
 getLines :: Int -> IO [String]
 getLines = getF lines
 
+
+getNumbers :: Int -> IO [Int]
+getNumbers = getF numbers
+
+
+--, Y+17
+numbers :: String -> [Int]
+numbers [] = []
+numbers cs
+  | null f = numbers $ dropWhile (not . isDigit) cs
+  | otherwise = read f : numbers b
+  where
+    (f,b) = span isDigit cs
 
 -- splits a list on an item and deletes the item
 
@@ -422,33 +443,45 @@ crossProduct (v1,v2,v3) (w1,w2,w3) = sum $ (\i -> sum $ (\j -> sum $ (\k -> scal
 
 
 floodFill :: Ord a => a -> (a -> [a]) -> [a]
-floodFill start getNext = go Set.empty (Q.fromList [start])
+floodFill start getNext = go S.empty (Q.fromList [start])
   where
     go !seen = \case
                 Q.Empty -> []
                 x Q.:<| newq 
-                  | x `Set.member` seen -> go seen newq
-                  | otherwise -> x : go (x `Set.insert` seen) (Q.appendList newq (getNext x))
+                  | x `S.member` seen -> go seen newq
+                  | otherwise -> x : go (x `S.insert` seen) (Q.appendList newq (getNext x))
   
 
 bfs :: Ord a => (a -> [a]) -> [a]-> [a]
-bfs next start = loop Set.empty (Q.fromList start)
+bfs next start = loop S.empty (Q.fromList start)
   where
     loop !seen = \case
                   Q.Empty -> []
                   x Q.:<| newq
-                    | x `Set.member` seen -> loop seen newq
-                    | otherwise -> x : loop (x `Set.insert` seen) (Q.appendList newq (next x))
+                    | x `S.member` seen -> loop seen newq
+                    | otherwise -> x : loop (x `S.insert` seen) (Q.appendList newq (next x))
 
 
 dfs :: Ord a => (a -> [a]) -> [a]-> [a]
-dfs next start = loop Set.empty (Q.fromList start)
+dfs next start = loop S.empty (Q.fromList start)
   where
     loop !seen = \case
                   Q.Empty -> []
                   x Q.:<| newq
-                    | x `Set.member` seen -> loop seen newq
-                    | otherwise -> x : loop (x `Set.insert` seen) (foldl' (\q x -> Q.cons x q) newq (next x))
+                    | x `S.member` seen -> loop seen newq
+                    | otherwise -> x : loop (x `S.insert` seen) (foldl' (\q x -> Q.cons x q) newq (next x))
+
+dfsSet :: Ord a => (a -> S.Set a) -> S.Set a-> S.Set a
+dfsSet next start = loop S.empty (Q.fromList $ S.toList start)
+  where
+    loop !seen = \case
+                  Q.Empty -> S.empty
+                  x Q.:<| newq
+                    | x `S.member` seen -> loop seen newq
+                    | otherwise -> x `S.insert` loop (x `S.insert` seen) (foldl' (\q x -> Q.cons x q) newq (next x))
+
+
+
 
 
 -- RECURSION STUFF ---
@@ -471,6 +504,8 @@ hylo f g = f . fmap (hylo f g) . g
 -- Functor that generates the rose tree
 data TreeF a  r = NodeF a [r] deriving (Functor, Show)
 data TreeF' a  r = LeafF' | NodeF' a [r] deriving (Functor, Show)
+data ListF a b = Nil | Cons a b deriving (Eq,Ord,Show,Read,Functor)
+
 
 -- Rose tree
 type Tree a = Fix (TreeF a)

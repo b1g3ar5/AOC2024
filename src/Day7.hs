@@ -2,47 +2,42 @@ module Day7(day7) where
 
 import Prelude hiding ((||))
 import Utils ( getLines, hylo, splitOn, intercalate )
+import Data.List.NonEmpty qualified as N
 
 
-parse :: String -> (Int, [Int])
-parse s = (read $ head ps, read <$> words (ps!!1))
+parse :: String -> (Int, N.NonEmpty Int)
+parse s = (read $ head ps, read <$> N.fromList (words (ps!!1)))
   where
     ps = splitOn ':' s
 
 
--- Maybe I should use logBase 10?
-(||) :: Int -> Int -> Int
-(||) x i = (10^length (show x))*i + x
-
-
--- Not sure we need a Tree...
-data Tree a  r = Leaf a | Node a r deriving (Functor, Show)
 data RTree a  r = Node1 a [r] deriving (Functor, Show)
 
 
 -- In the backwards tree we apply the inverse of the operations
 -- to the target to get a smaller target for each of the children
--- So, there will only be a multiplication child node if the target
+-- this prunes the tree quite a bit.
+-- There will only be a multiplication child node if the target
 -- is divisible by the element (first on the remaining list)
 -- Also there will only be a concatenation node if the element
 -- is there on the end of the target.
-coalgB :: Bool -> (Int, [Int]) -> RTree Int (Int, [Int])
-coalgB _ (_,[]) = error "I don't think we should get here"
-coalgB _ (t, [x]) = Node1 (if t==x then t else 0) []
-coalgB isPart2 (t, x:xs)
+coalgB :: Bool -> (Int, N.NonEmpty Int) -> RTree Int (Int, N.NonEmpty Int)
+coalgB isPart2 (t, x N.:| xs)
+  | null xs = Node1 (if t==x then t else 0) []
   | t < x = Node1 0 []
   | otherwise = Node1 t ns
   where
     (q,r) = t `quotRem` x
-    ns = (t-x, xs) : [(q,xs) | r==0] ++ [(unConcat t x, xs) | isPart2]
+    nxs = N.fromList xs -- null xs excluded by the first guard
+    ns = (t-x, nxs) : [(q, nxs) | r==0] ++ [(unConcat t x, nxs) | isPart2]
 
 
--- take the second number off the end of the first
 unConcat :: Int -> Int -> Int
 unConcat t x
-  | t==x = 0
+  | t<=x = 0 
   | otherwise = go (reverse $ show t) (reverse $ show x)
   where
+    -- Takes digits off one at a time if they are the same
     go [] _ = 0
     go tt [] = read $ reverse tt
     go (tt:ts) (xx:xs)= if tt==xx then go ts xs else 0
@@ -60,8 +55,8 @@ printTree :: RTree Int String -> String
 printTree (Node1 x xs) = "Node1: " ++ show x ++ ": " ++ intercalate ", " xs
 
 
-checkB :: Bool -> Int -> [Int] -> Int
-checkB isPart2 target xs = hylo algB (coalgB isPart2) (target, reverse xs)
+checkB :: Bool -> Int -> N.NonEmpty Int -> Int
+checkB isPart2 target xs = hylo algB (coalgB isPart2) (target, N.reverse xs)
 
 
 day7 :: IO ()
@@ -75,6 +70,7 @@ day7 = do
   return ()
 
 -- Forwards tree, much slower than backwards
+data Tree a  r = Leaf a | Node a r deriving (Functor, Show)
 
 -- The Tree goes forwards, so the coalgebra is easy
 -- just put the numbers in the nodes
@@ -82,6 +78,10 @@ coalgF :: [Int] -> Tree Int [Int]
 coalgF [] = error "I don't think we should get here"
 coalgF [x] = Leaf x
 coalgF (x:xs) = Node x xs
+
+-- Maybe I should use logBase 10?
+(||) :: Int -> Int -> Int
+(||) x i = (10^length (show x))*i + x
 
 
 -- The algrebra applies the ops to the node values

@@ -28,6 +28,7 @@ dependencies:
 - regex-applicative
 - scientific
 - MemoTrie
+- recursion-schemes
 
 ghc-options:
 - -Wall

@@ -72,6 +72,7 @@ library
     , containers
     , hashable
     , parsers
+    , recursion-schemes
     , regex-applicative
     , scientific
     , split
@@ -101,6 +102,7 @@ executable AOC2024-exe
     , containers
     , hashable
     , parsers
+    , recursion-schemes
     , regex-applicative
     , scientific
     , split
@@ -131,6 +133,7 @@ test-suite AOC2024-test
     , containers
     , hashable
     , parsers
+    , recursion-schemes
     , regex-applicative
     , scientific
     , split
