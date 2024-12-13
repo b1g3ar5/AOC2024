@@ -1,15 +1,14 @@
 module Day5(day5) where
 
-import Utils (partition, getLines, splitOn, steadyState, foldl')
+import Utils
 import Data.Bimap (Bimap)
 import Data.Bimap qualified as M
 
 
 parse :: [String] -> ([Rule], [[Page]])
-parse s = (ws, (read <$>). splitOn ',' <$> (ps!!1))
+parse s = (numbers2 <$> head ps, numbers <$> (ps!!1))
   where
     ps = splitOn "" s
-    ws = (\l -> (read $ take 2 l, read $ drop 3 l)) <$> head ps
 
 
 type Page = Int

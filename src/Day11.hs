@@ -3,13 +3,9 @@
 
 module Day11(day11) where
 
-import Utils (times)
+import Utils (numbers)
 import Data.IntMap qualified as M
 import Data.MemoTrie (memo2)
-
-
-parse :: String -> [Int]
-parse = (read <$>) .  words
 
 
 -- Takes the steps and a stone and returns the number of stones
@@ -28,7 +24,7 @@ changeStone  = memo2 $ \steps stone ->
 day11 :: IO ()
 day11 = do
   let s = "0 44 175060 3442 593 54398 9 8101095"
-  let g = parse s
+  let g = numbers s
 
   putStrLn $ "Day11: part1: " ++ show (sum $ memo2 changeStone 25 <$> g)
   putStrLn $ "Day11: part2: " ++ show (sum $ memo2 changeStone 75 <$> g)

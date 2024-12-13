@@ -26,11 +26,13 @@ parse ss = parseMachine <$> cs
 
 solveMachine :: Machine -> Maybe Int
 solveMachine ((ax, ay), (bx,by), (px, py))
+  | det == 0 = error "The buttons are not independent"
   | (rm == 0) && (rn == 0) = Just (3*n+m)
   | otherwise = Nothing
   where
-    (m, rm) = (px*ay-py*ax) `quotRem` (bx*ay-by*ax)
-    (n, rn) = (px*ay - m*bx*ay) `quotRem` (ax*ay)
+    det = bx*ay-ax*by
+    (m, rm) = (px*ay - py*ax) `quotRem` det
+    (n, rn) = (py*bx - px*by) `quotRem` det
 
 
 day13 :: IO ()

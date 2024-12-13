@@ -5,16 +5,10 @@ import TotalMap qualified as T
 import TotalMap()
 
 
-parse :: String -> (Int, Int)
-parse s = (read $ head p, read $ last p)
-  where
-    p = words s
-
-
 day1 :: IO ()
 day1 = do
   ss <- getLines 1
-  let (list1, list2) = bimap sort sort $ unzip $ parse <$> ss
+  let (list1, list2) = bimap sort sort $ unzip $ numbers2 <$> ss
       frequency :: T.TMap Int Int
       frequency = T.fromList 0 $ (\gp -> (head gp, length gp)) <$> group list2
 

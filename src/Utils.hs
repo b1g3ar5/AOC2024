@@ -9,6 +9,8 @@ module Utils (
   , getTest -- gets .ex file
   , getNumbers
   , numbers
+  , numbers2
+  , numbers3
 
   -- text manipulation
   , wordsWhen
@@ -210,6 +212,18 @@ numbers cs
   | otherwise = read f : numbers b
   where
     (f,b) = span isDigit cs
+
+
+numbers2 :: [Char] -> (Int, Int)
+numbers2 s = (ns!!0, ns!!1)
+  where
+    ns = numbers s
+
+
+numbers3 :: [Char] -> (Int, Int, Int)
+numbers3 s = (ns!!0, ns!!1, ns!!2)
+  where
+    ns = numbers s
 
 -- splits a list on an item and deletes the item
 

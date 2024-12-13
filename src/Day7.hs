@@ -1,14 +1,14 @@
 module Day7(day7) where
 
 import Prelude hiding ((||))
-import Utils ( getLines, hylo, splitOn, intercalate )
+import Utils hiding (Tree)
 import Data.List.NonEmpty qualified as N
 
 
 parse :: String -> (Int, N.NonEmpty Int)
-parse s = (read $ head ps, read <$> N.fromList (words (ps!!1)))
+parse s = (p, N.fromList ps)
   where
-    ps = splitOn ':' s
+    (p:ps) = numbers s
 
 
 data RTree a  r = Node1 a [r] deriving (Functor, Show)
