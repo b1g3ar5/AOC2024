@@ -3,8 +3,8 @@ module Day9(day9) where
 import Utils
 import Data.Sequence (Seq, (|>), (<|))
 import Data.Sequence qualified as S
-import Data.Map (Map)
-import Data.Map qualified as M
+import Data.IntMap (IntMap)
+import Data.IntMap qualified as M
 
 
 -- I found part2 difficult until I thought of using maps
@@ -45,7 +45,7 @@ expand ((ix,n) S.:<| xs) = replicate n ix ++ expand xs
 
 
 -- Rearranges one file and returns the updates maps
-rearrangeFile :: (Map Int (Int, Int), [(Int, Int)]) -> Int -> (Map Int (Int, Int), [(Int, Int)])
+rearrangeFile :: (IntMap  (Int, Int), [(Int, Int)]) -> Int -> (IntMap (Int, Int), [(Int, Int)])
 rearrangeFile (fm, []) _ = (fm, [])
 rearrangeFile (fm, (cur,len):spaces) fileIx
   | cur >= pos = (fm, (cur,len):spaces) -- No spaces nearer the start
@@ -61,7 +61,7 @@ day9 = do
   ss <- getF lines 9
   let fs :: Seq (Int, Int)
       fs = parse $ head ss
-      fileMap :: Map Int (Int, Int)
+      fileMap :: IntMap (Int, Int)
       fileMap = snd $ foldl' (\(cur, m) (ix, sz) -> (cur + sz, if ix /=0 then M.insert ix (cur, sz) m else m)) (0, M.empty) fs
       spaceMap :: [(Int, Int)]
       spaceMap = reverse $ snd $ foldl' (\(cur, m) (ix, sz) -> (cur + sz, if ix /=0 then m else (cur, sz):m)) (0, []) fs

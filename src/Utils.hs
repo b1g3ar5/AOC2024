@@ -11,6 +11,7 @@ module Utils (
   , numbers
   , numbers2
   , numbers3
+  , numbersSigned
 
   -- text manipulation
   , wordsWhen
@@ -212,6 +213,14 @@ numbers cs
   | otherwise = read f : numbers b
   where
     (f,b) = span isDigit cs
+
+numbersSigned :: String -> [Int]
+numbersSigned [] = []
+numbersSigned cs
+  | null f = numbersSigned $ dropWhile (\c -> not (isDigit c|| (c=='-'))) cs
+  | otherwise = read f : numbersSigned b
+  where
+    (f,b) = span (\c -> isDigit c || c == '-') cs
 
 
 numbers2 :: [Char] -> (Int, Int)
@@ -493,6 +502,14 @@ dfsSet next start = loop S.empty (Q.fromList $ S.toList start)
                   x Q.:<| newq
                     | x `S.member` seen -> loop seen newq
                     | otherwise -> x `S.insert` loop (x `S.insert` seen) (foldl' (\q x -> Q.cons x q) newq (next x))
+
+
+-- Floyd–Warshall algorithm to detect cycles
+isLoop :: Eq a => [a] -> Bool
+isLoop a = go a a
+  where
+   go (x:xs) (_:y:ys) = x == y || go xs ys
+   go _      _        = False
 
 
 

@@ -2,6 +2,7 @@ module Lib
     ( libMain
     ) where
 
+import Utils (timeIt)
 import Day1
 import Day2
 import Day3
@@ -34,7 +35,7 @@ libMain = do
   --day6
   --day7
   --day8
-  --day9
+  --timeIt day9
   --day10
   --day11
   --day12
