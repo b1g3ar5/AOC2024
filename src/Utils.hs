@@ -37,6 +37,8 @@ module Utils (
   -- Coordinates
   , Coord
   , Coord3
+  , Direction(..)
+  , toCoord
   , scale3
   , scale
   , neighbours4
@@ -315,6 +317,13 @@ steadyStateM f x = case f x of
 
 type Coord = (Int, Int)
 type Coord3 = (Int, Int, Int)
+data Direction = RT | LF | UP | DN deriving (Eq, Show)
+
+toCoord :: Direction -> Coord
+toCoord RT = rt
+toCoord LF = lt
+toCoord UP = up
+toCoord DN = dn
 
 instance {-# OVERLAPPING #-} Hashable Coord where
 
