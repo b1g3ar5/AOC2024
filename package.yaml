@@ -29,6 +29,7 @@ dependencies:
 - scientific
 - MemoTrie
 - recursion-schemes
+- pqueue
 
 ghc-options:
 - -Wall

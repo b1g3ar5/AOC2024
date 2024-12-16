@@ -503,6 +503,7 @@ dfs next start = loop S.empty (Q.fromList start)
                     | x `S.member` seen -> loop seen newq
                     | otherwise -> x : loop (x `S.insert` seen) (foldl' (\q x -> Q.cons x q) newq (next x))
 
+
 dfsSet :: Ord a => (a -> S.Set a) -> S.Set a-> S.Set a
 dfsSet next start = loop S.empty (Q.fromList $ S.toList start)
   where
@@ -519,9 +520,6 @@ isLoop a = go a a
   where
    go (x:xs) (_:y:ys) = x == y || go xs ys
    go _      _        = False
-
-
-
 
 
 -- RECURSION STUFF ---

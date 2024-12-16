@@ -4,6 +4,7 @@ module Queue where
 
 import Data.Foldable (Foldable(..))
 
+
 data Queue a = Queue [a] [a] !Int
 
 
