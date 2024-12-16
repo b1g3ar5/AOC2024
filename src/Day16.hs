@@ -24,21 +24,22 @@ getStart = fst . head . filter snd . parseGridWith (=='S')
 getFinish = fst . head . filter snd . parseGridWith (=='E')
 
 
--- Doesn't finish just runs on the whole grid. Visited is a map with the lowest score for each state
-dijkstra :: Q.MinPQueue Int State -> Map State Int -> (State -> [State]) -> (State -> State -> Int) -> Map State Int
-dijkstra pipeline visited next cost
+-- Returns visited which is a map with the lowest score for each state
+dijkstra :: Q.MinPQueue Int State -> Map State Int -> (State -> [State]) -> (State -> State -> Int) -> (State -> Bool) -> Map State Int
+dijkstra pipeline visited nextFn costFn finishFn
   | Q.null pipeline = visited
-  | state `M.member` visited = dijkstra remainingPipeline newVisited next cost
-  | otherwise = dijkstra newPipeline newVisited next cost
+  | finishFn state = visited
+  | state `M.member` visited = dijkstra remainingPipeline newVisited nextFn costFn finishFn
+  | otherwise = dijkstra newPipeline newVisited nextFn costFn finishFn
   where
     ((savedMin, state), remainingPipeline) = Q.deleteFindMin pipeline
-    newStates = next state
-    newPipeline = remainingPipeline `Q.union` Q.fromList ((\n -> (savedMin + cost state n, n)) <$> newStates)
+    newStates = nextFn state
+    newPipeline = remainingPipeline `Q.union` Q.fromList ((\n -> (savedMin + costFn state n, n)) <$> newStates)
     newVisited = M.insertWith min state savedMin visited
 
 
 solve :: (Coord, Coord) -> Set Coord -> Map State Int
-solve (start, direction) walls = dijkstra (Q.fromList [(0, (start, direction))]) M.empty nextStates cost
+solve (start, direction) walls = dijkstra (Q.fromList [(0, (start, direction))]) M.empty nextStates cost (const False)
   where
     cost :: State -> State -> Int
     cost (from, dir) (to, _)
@@ -59,7 +60,7 @@ day16 = do
       bwd = solve (finish, lt) walls
       minScore = fwd M.! (finish, (1,0))
 
-      -- Comibine fwd and bwd maps - reversing directions of bwd ..
+      -- Combine fwd and bwd maps - reversing directions of bwd ..
       bothWays = M.unionWith (+) fwd $ M.mapKeys (\(p,d) -> (p, -d)) bwd
       
       -- Get rid of the directions and keep the minimum score for each position
