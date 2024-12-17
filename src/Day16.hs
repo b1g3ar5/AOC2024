@@ -68,7 +68,7 @@ day16 = do
       reduced = M.filter (==minScore) $ M.mapKeysWith min fst bothWays
 
 
-  putStrLn $ "Day16: part2: " ++ show minScore
+  putStrLn $ "Day16: part1: " ++ show minScore
   putStrLn $ "Day16: part2: " ++ show (M.size reduced)
 
   return ()

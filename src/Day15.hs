@@ -40,7 +40,7 @@ pDir c = error $ "Only 4 directions: " ++ [c] ++ "?"
 
 
 rows, cols1, cols2 :: Int
-rows = 50 -- 10
+rows = 10 --50 -- 10
 cols1 = rows
 cols2 = 2*rows
 
@@ -135,24 +135,27 @@ boxMove2 (box, g) move
 
 robotMove2 :: (Coord , Map Coord Cell) -> Direction -> (Coord , Map Coord Cell)
 robotMove2 (pos, g) RT
-  | c == Space = (pos + toCoord RT, g)
-  | c == Start = (pos + toCoord RT, g)
-  | c == Wall = (pos, g)
-  | c == BoxL && not boxMoved = (pos, g)
-  | c == BoxL = robotMove2 (pos, newGrid) RT
+  | nextCell == Space = (pos + toCoord RT, g)
+  | nextCell == Start = (pos + toCoord RT, g)
+  | nextCell == Wall = (pos, g)
+  | nextCell == BoxL && not boxMoved = (pos, g)
+  | nextCell == BoxL = robotMove2 (pos, newGrid) RT
   | otherwise = error "Unknown cell contents"
   where
-    c = g M.! (pos + toCoord RT)
+    thisCell = g M.! pos
+    nextCell = g M.! (pos + toCoord RT)
     (newGrid, boxMoved) = boxMove2 (pos + toCoord RT, g) RT
+
 robotMove2 (pos, g) LF
-  | c == Space = (pos + toCoord LF, g)
-  | c == Start = (pos + toCoord LF, g)
-  | c == Wall = (pos, g)
-  | c == BoxR && not boxMoved = (pos, g)
-  | c == BoxR = robotMove2 (pos, newGrid) LF
+  | nextCell == Space = (pos + toCoord LF, g)
+  | nextCell == Start = (pos + toCoord LF, g)
+  | nextCell == Wall = (pos, g)
+  | nextCell == BoxR && not boxMoved = (pos, g)
+  | nextCell == BoxR = robotMove2 (pos, newGrid) LF
   | otherwise = error "Unknown cell contents"
   where
-    c = g M.! (pos + toCoord LF)
+    thisCell = g M.! pos
+    nextCell = g M.! (pos + toCoord LF)
     (newGrid, boxMoved) = boxMove2 (pos + toCoord LF, g) LF
 -- UP or DN
 robotMove2 (pos, g) move
@@ -173,36 +176,33 @@ robotMove2 (pos, g) move
     (newGridL, boxToLMoved) = boxMove2 (pos + toCoord move + lt, newGrid) move
     (newGridR, boxToRMoved) = boxMove2 (pos + toCoord move + rt, newGrid) move
 
-{-
-robotMove2 (pos, g) LF
-  | c == Space = (pos + toCoord LF, g)
-  | c == Start = (pos + toCoord LF, g)
-  | c == Wall = (pos, g)
-  | c == BoxR && not boxMoved = (pos, g)
-  | c == BoxR = robotMove2 (pos, newGrid) LF
-  | otherwise = error "Unknown cell contents"
--}
 move2 :: (Coord, Map Coord Cell) -> Direction -> (Coord, Map Coord Cell)
 move2 (pos, g) move
   | nextCell == Space = (pos + toCoord move, M.insert pos Space $ M.insert (pos + toCoord move) thisCell g)
   | nextCell == Start = (pos + toCoord move, M.insert pos Space $ M.insert (pos + toCoord move) thisCell g)
   | nextCell == Wall = (pos, g)
+
   | nextCell == BoxL && nextCellStuck = (pos, g)
   | nextCell == BoxL && (move `elem` [UP, DN]) && nextRStuck = (pos, g)
   | nextCell == BoxL = move2 (pos, newGridR) move
+
   | nextCell == BoxR && nextCellStuck = (pos, g)
   | nextCell == BoxR && (move `elem` [UP, DN]) && nextLStuck = (pos, g)
-  | nextCell == BoxR = move2 (pos, newGridL) move
+  | nextCell == BoxR = if move `elem` [UP, DN] then move2 (pos, newGridL) move else move2 (pos, newGrid) move
+
   | otherwise = error "Unknown cell contents"
   where
-    thisCell = g M.! pos -- left
+    thisCell = g M.! pos -- @
     nextCell = g M.! (pos + toCoord move) -- boxR 
     (newNextPos, newGrid) = move2 (pos + toCoord move, g) move -- always called
-    (newL, newGridL) = move2 (pos + toCoord move + lt, newGrid) move
-    (newR, newGridR) = move2 (pos + toCoord move + rt, newGrid) move -- this is called
+
+    -- Just for UP and DN
+    (newL, newGridL) = trace (show "newL: " ++ show pos) $ move2 (pos + toCoord move + lt, newGrid) move
+    (newR, newGridR) = trace (show "newR: " ++ show pos) $ move2 (pos + toCoord move + rt, newGrid) move -- this is called
     nextCellStuck = newNextPos == pos + toCoord move
     nextLStuck = newL == pos + toCoord move + lt
     nextRStuck = newR == pos + toCoord move + rt
+
 
 score :: Cell -> (Coord, Map Coord Cell) -> Int
 score xx yy = sum $ (\(x,y) -> x+100*y) . fst <$> M.toList (M.filter (==xx) $ snd yy)
@@ -210,7 +210,7 @@ score xx yy = sum $ (\(x,y) -> x+100*y) . fst <$> M.toList (M.filter (==xx) $ sn
 
 day15 :: IO ()
 day15 = do
-  ss <- getF lines 15
+  ss <- getTest lines 15
   let (g1, ms) = parse1 ss
       (g2, _) = parse2 ss
       start1 = fst $ head $ M.toList $ M.filter (== Start) g1
@@ -220,10 +220,11 @@ day15 = do
   putStrLn $ "Day15: part2: " ++ show (score BoxL $ foldl robotMove2 (start2, g2) ms)
 
   let n = 1
-  putStrLn $ "Day15: part2: " ++ show (score BoxL $ foldl robotMove2 (start2, g2) $ take n ms)
-  putStrLn $ "Day15: part2: " ++ show (score BoxL $ foldl move2 (start2, g2) $ take n ms)
+  --putStrLn $ "Day15: part2: " ++ show (score BoxL $ foldl robotMove2 (start2, g2) $ take n ms)
+  --putStrLn $ "Day15: part2: " ++ show (score BoxL $ foldl move2 (start2, g2) $ take n ms)
 
-  putStrLn $ "Day15: part2:\n " ++ render (snd $ robotMove2 (start2, g2) $ head ms)
-  putStrLn $ "Day15: part2:\n " ++ render (snd $ move2 (start2, g2) $ head ms)
+  --putStrLn $ "Day15: part2: " ++ show (head ms)
+  --putStrLn $ "Day15: part2:\n " ++ render (snd $ robotMove2 (start2, g2) LF)
+  --putStrLn $ "Day15: part2:\n " ++ render (snd $ move2 (start2, g2) LF)
 
   return ()
