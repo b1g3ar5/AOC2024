@@ -3,8 +3,8 @@
 module Day18(day18) where
 
 import Utils hiding (dfs)
+import Data.PQueue.Prio.Min (MinPQueue(..))
 import Data.PQueue.Prio.Min qualified as Q
-import Queue qualified as QQ
 import Data.Set qualified as S
 import Data.Map (Map)
 import Data.Map qualified as M
@@ -31,27 +31,26 @@ solve1 bytes = dfs S.empty (Q.fromList [(0, start)])
     next :: Coord -> [Coord]
     next p = filter (\n -> inbounds n && not (n `S.member` bytes))  (neighbours4 p)
 
-    dfs :: S.Set Coord -> Q.MinPQueue Int Coord -> Map Coord Int
+    dfs :: S.Set Coord -> MinPQueue Int Coord -> Map Coord Int
     dfs !seen = \case
-              Q.Empty -> M.empty
-              x@(n,p) Q.:< newq
-                | p `S.member` seen -> dfs seen newq
-                | otherwise -> M.insert p n $ dfs (p `S.insert` seen) (foldr (Q.insert (n+1)) newq (next p))
+                  Q.Empty -> M.empty
+                  (n,p) :< newq
+                    | p `S.member` seen -> dfs seen newq
+                    | otherwise -> M.insert p n $ dfs (p `S.insert` seen) (foldr (Q.insert (n+1)) newq (next p))
 
 
 solve2 :: [Coord] -> Int
-solve2 bytes = go 1024 1000
-  where
-    failure :: Map Coord Int -> Bool
-    failure mp = isNothing $ mp M.!? exit
-
+solve2 bytes = go 1024 (length bytes)
+  where  
     go :: Int -> Int -> Int
-    go lo step
-      | hiFailed  = if step==1 then lo else go lo $ step `div` 2
-      | otherwise = go (lo+step) step
+    go lo hi
+      | hi == (lo + 1) = lo
+      | noExit  = go lo mid
+      | otherwise = go mid hi
       where
-        hiFailed = failure $ solve1 (S.fromList $ take (lo+step) bytes)
-        
+        mid = (lo + hi) `div` 2
+        noExit = M.notMember exit $ solve1 (S.fromList $ take mid bytes)
+
 
 day18 :: IO ()
 day18 = do
@@ -61,6 +60,6 @@ day18 = do
       g1 = S.fromList $ take usage g
 
   putStrLn $ "Day18: part1: " ++ show ( solve1 g1 M.! exit)
-  putStrLn $ "Day18: part2: " ++ show (g !! solve2 g)
+  putStrLn $ "Day18: part2: " ++ (\(x,y) -> show x ++ "," ++ show y ) (g !! solve2 g)
 
   return ()
