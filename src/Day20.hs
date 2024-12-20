@@ -1,13 +1,10 @@
 module Day20(day20) where
 
 import Utils
-import Data.PQueue.Prio.Min (MinPQueue(..))
-import Data.PQueue.Prio.Min qualified as Q
 import Data.Set (Set)
 import Data.Set qualified as S
 import Data.Map (Map)
 import Data.Map qualified as M
-import Data.MemoTrie ((:->:)(BoolTrie))
 
 
 parse :: [String] -> [Coord]
@@ -21,10 +18,11 @@ parseEnd  =  head . (fst <$>) . filter snd . parseGridWith (=='E')
 type Time = Int
 type Freq = Int
 
+
 solve :: Coord -> Coord -> Set Coord -> Map Coord Time
 solve start end walls = go (start, 0) M.empty
   where 
-    -- There is only one path...
+    -- There is only one path - using head
     next :: Coord -> Map Coord Time -> Coord
     next p seen = head $ filter (\n -> not (n `S.member` walls) && not (n `M.member` seen)) $ neighbours4 p
 
@@ -34,8 +32,22 @@ solve start end walls = go (start, 0) M.empty
 
 savingThreshold :: Time
 savingThreshold = 100
-rows :: Int
-rows = 141
+
+
+-- Simple (slow) algorithm - run over all pairs of coords in the path
+-- see if the cheat is worth it - if so increment the counter
+countCheats :: Map Coord Time -> Time -> Int
+countCheats timeMap cheatTime = foldl (\mp from -> foldl (go cheatTime from) mp ks ) 0 ks
+  where
+    ks = M.keys timeMap
+    go :: Int -> Coord -> Int -> Coord -> Int
+    go cheatLength from counter to
+      | dist > cheatLength = counter
+      | saving >= savingThreshold = counter+1
+      | otherwise = counter
+      where
+        dist = manhattan from to
+        saving = timeMap M.! from  - timeMap M.! to - dist
 
 
 day20 :: IO ()
@@ -44,29 +56,18 @@ day20 = do
   let walls = S.fromList $ parse ss
       start = parseStart ss
       end = parseEnd ss
+
       timeMap :: Map Coord Time
       timeMap = solve start end walls
+
       minTime :: Time
       minTime = maximum timeMap
+
       timeToEndMap :: Map Coord Time
       timeToEndMap = (minTime-) <$> timeMap
-      ks = M.keys timeMap
-
-      --xx :: Map Time Freq
-      x2 = foldl (\mp from -> foldl (go 2 from) mp ks ) M.empty ks
-      x20 = foldl (\mp from -> foldl (go 20 from) mp ks ) M.empty ks
-
-      go :: Int -> Coord -> Map Time Freq -> Coord -> Map Time Freq
-      go cheatLength from mp to
-        | dist > cheatLength = mp
-        | saving > savingThreshold = M.insertWith (+) saving 1 mp
-        | otherwise = mp
-        where
-          dist = manhattan from to
-          saving = timeToEndMap M.! from  - timeToEndMap M.! to - dist + 1
 
 
-  putStrLn $ "Day20: part1: " ++ show (sum x2)
-  putStrLn $ "Day20: part1: " ++ show (sum x20)
+  putStrLn $ "Day20: part1: " ++ show (countCheats timeToEndMap 2)
+  putStrLn $ "Day20: part2: " ++ show (countCheats timeToEndMap 20)
 
   return ()
