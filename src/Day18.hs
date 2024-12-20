@@ -32,11 +32,12 @@ solve1 bytes = dfs S.empty (Q.fromList [(0, start)])
     next p = filter (\n -> inbounds n && not (n `S.member` bytes))  (neighbours4 p)
 
     dfs :: S.Set Coord -> MinPQueue Int Coord -> Map Coord Int
-    dfs !seen = \case
-                  Q.Empty -> M.empty
-                  (n,p) :< newq
-                    | p `S.member` seen -> dfs seen newq
-                    | otherwise -> M.insert p n $ dfs (p `S.insert` seen) (foldr (Q.insert (n+1)) newq (next p))
+    dfs !seen q
+      | Q.null q = M.empty
+      | p `S.member` seen  = dfs seen nextq
+      | otherwise  =  M.insert p n $ dfs (p `S.insert` seen) (foldr (Q.insert (n+1)) nextq (next p))
+      where
+        (n,p) :< nextq = q
 
 
 solve2 :: [Coord] -> Int
@@ -45,7 +46,7 @@ solve2 bytes = go 1024 (length bytes)
     go :: Int -> Int -> Int
     go lo hi
       | hi == (lo + 1) = lo
-      | noExit  = go lo mid
+      | noExit = go lo mid
       | otherwise = go mid hi
       where
         mid = (lo + hi) `div` 2

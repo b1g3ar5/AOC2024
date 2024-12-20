@@ -35,22 +35,23 @@ combo _ _ = error "Opcode too high"
 
 
 ins :: (Int, Operand) -> (Regs, Pointer, Output) -> (Regs, Pointer, Output)
-ins (0, op) (rs@(a,b,c), p, output) = ((a `shiftR` combo op rs, b, c), p+2, output) --adv
-ins (6, op) (rs@(a,_,c), p, output) = ((a, a `shiftR` combo op rs, c), p+2, output) --bdv
-ins (7, op) (rs@(a,b,_), p, output) = ((a, b, a `shiftR` combo op rs), p+2, output) --cdv
-ins (1, op) (rs@(a,b,c), p, output) = ((a, b `xor` op, c), p+2, output) --bxl
-ins (4, _ ) (rs@(a,b,c), p, output) = ((a, b `xor` c, c), p+2, output) -- bxc
 ins (2, op) (rs@(a,_,c), p, output) = ((a, combo op rs .&. 7, c), p+2, output) --bst
+ins (1, op) (rs@(a,b,c), p, output) = ((a, b `xor` op, c), p+2, output) --bxl
+ins (7, op) (rs@(a,b,_), p, output) = ((a, b, a `shiftR` combo op rs), p+2, output) --cdv
+ins (4, _ ) (rs@(a,b,c), p, output) = ((a, b `xor` c, c), p+2, output) -- bxc
+-- 1 again
+ins (0, op) (rs@(a,b,c), p, output) = ((a `shiftR` combo op rs, b, c), p+2, output) --adv
 ins (5, op) (rs@(a,b,c), p, output) = ((a, b, c), p+2, output ++ [combo op rs .&. 7]) -- out
 ins (3, op) (rs@(a,b,c), p, output) = ((a, b, c), if a /= 0 then op else p+2, output) -- jnz
+
+ins (6, op) (rs@(a,_,c), p, output) = ((a, a `shiftR` combo op rs, c), p+2, output) --bdv
 ins _ _ = error "Instruction code is >7"
 
 
 run :: Program -> (Regs, Pointer, Output) -> Output
-run ps c@(rs, pix, output)
-  | n == 0 = output
+run ps state@(_, pix, output)
   | (pix `div` 2) >= n = output
-  | otherwise = run ps $ ins (ps !! (pix `div` 2)) c
+  | otherwise = run ps $ ins (ps !! (pix `div` 2)) state
   where
     n = length ps
 
@@ -81,12 +82,12 @@ day17 = do
       regs :: Regs
       regs = (37283687,0,0)
       ff = find target prog
-      p = ins (5,5) . ins (0,3) . ins (1,3) . ins (4,1) . ins (7,5) . ins (1,3) . ins (2,4)
+      p = ins (3,0) . ins (5,5) . ins (0,3) . ins (1,3) . ins (4,1) . ins (7,5) . ins (1,3) . ins (2,4)
       xs = [0::Int,0,24,4,5,1,3,0,1,0,4,5,2,2,4,0,324861]
       ps = foldl (\acc x -> acc `shiftL` 3 + x) 0 xs
 
   putStrLn $ "Day17: part1: " ++ show (run prog (regs, 0, [])) -- [1,5,3,0,2,5,2,5,3]
-  putStrLn $ "Day17: part2:solve " ++ show (solve prog) -- 108107566389757
+  putStrLn $ "Day17: part2: " ++ show (solve prog) -- 108107566389757
 
   return ()
 

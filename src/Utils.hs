@@ -48,6 +48,7 @@ module Utils (
   , nextTo8
   , euclidian
   , manhattan
+  , circle
   , manhattan3
   , lt, rt, up, dn
   , lt3, rt3, up3, dn3, in3, ot3
@@ -412,6 +413,10 @@ coords `at3` origin = (+ origin) <$> coords
 -- All coords in a grid in (x, y) (col, row) order
 allCoords :: Int -> Int -> [Coord]
 allCoords rows cols = concatMap (\c -> (c,) <$> [0..(rows-1)]) [0..(cols-1)]
+
+
+circle :: Int -> Coord -> Int -> Int -> [Coord]
+circle distance pos rows cols = filter (\c -> manhattan pos c <= distance) $ allCoords rows cols
 
 
 directions8 :: [Coord]
