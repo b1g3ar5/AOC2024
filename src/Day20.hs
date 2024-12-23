@@ -35,7 +35,7 @@ savingThreshold = 100
 
 
 -- Simple (slow) algorithm - run over all pairs of coords in the path
--- see if the cheat is worth it - if so increment the counter
+-- see if the cheat between them is worth it - if so increment the counter
 countCheats :: Map Coord Time -> Time -> Int
 countCheats timeMap cheatTime = foldl (\mp from -> foldl (go cheatTime from) mp ks ) 0 ks
   where

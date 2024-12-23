@@ -30,6 +30,8 @@ dependencies:
 - MemoTrie
 - recursion-schemes
 - pqueue
+- trie-simple
+- maximal-cliques
 
 ghc-options:
 - -Wall

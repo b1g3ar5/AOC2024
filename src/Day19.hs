@@ -6,8 +6,8 @@
 
 module Day19(day19) where
 
-import Utils
-import Data.List
+import Utils hiding (TreeF(..))
+import Data.List (isPrefixOf, tails)
 import Data.MemoTrie (memo)
 import Data.Map (Map)
 import Data.Map qualified as M
@@ -43,26 +43,68 @@ day19 = do
       ways = designWays (foldMap toTrie towels) <$> designs
 
   putStrLn $ "Day19: part1: " ++ show (length $ filter (solve1 towels) designs)
-  putStrLn $ "Day19: part1: " ++ show (sum $ solve2 towels <$> designs)
-  putStrLn $ "Day19: part1: " ++ show (sum ways)
+  putStrLn $ "Day19: part2: " ++ show (sum $ solve2 towels <$> designs)
+  putStrLn $ "Day19: part2: " ++ show (sum ways)
 
   return ()
 
 
 
--- The Bool is "Yes, it fits!"
--- The map is over next possible characters
+-- The bool signifies that we can end a word here
+-- The map is all subsequent tries.
 data TrieF r = NodeF !Bool (Map Char r) deriving (Eq, Show)
+
+instance Semigroup r => Semigroup (TrieF r) where
+  NodeF x xs <> NodeF y ys = NodeF (x || y) (M.unionWith (<>) xs ys)
+
+instance Semigroup r => Monoid (TrieF r) where
+  mempty = NodeF False M.empty
+
+
+-- Build a Trie from a word
+fromWord :: String -> TrieF String
+fromWord [] = NodeF True M.empty
+fromWord (c:cs) = NodeF False (M.singleton c cs)
+
+
+-- Build a Trie from a list of words
+fromWords :: String -> TrieF String
+fromWords s =  foldMap fromWord ws
+  where
+    ws = words s
+
+
+alg :: TrieF (Int, String) -> (Int, String)
+alg (NodeF b mp) = undefined
+
+
+designWays' :: Trie -> String -> Int
+designWays' t pattern = memo ! 0
+  where
+    n = length pattern
+    memo :: Array Int Int
+    memo = listArray (0, n)
+           [ if i == n then 1 else sum [memo ! j | j <- matches t i suffix]
+           | i      <- [0 .. n]
+           | suffix <- tails pattern]
+
+
+-- OLD CODE?
+
 data Trie = Node !Bool (Map Char Trie) deriving (Show)
 
---coalg :: String -> TrieF String
---coalg [] = NodeF True M.empty
---coalg (c:cs) = NodeF False (M.singleton c cs)
+instance Semigroup Trie where
+  (<>) :: Trie -> Trie -> Trie
+  Node x xs <> Node y ys = Node (x || y) (M.unionWith (<>) xs ys)
+
+instance Monoid Trie where
+  mempty :: Trie
+  mempty = Node False M.empty
 
 
--- Word to Trie
 toTrie :: String -> Trie
 toTrie = foldr (\x t -> Node False (M.singleton x t)) (Node True M.empty)
+
 
 
 matches :: Trie -> Int -> String -> [Int]
@@ -71,13 +113,6 @@ matches (Node b xs) n letters =
   case letters of
     c:cs | Just t <- M.lookup c xs -> matches t (n+1) cs
     _ -> []
-
-
-instance Semigroup Trie where
-  Node x xs <> Node y ys = Node (x || y) (M.unionWith (<>) xs ys)
-
-instance Monoid Trie where
-  mempty = Node False M.empty
 
 
 designWays :: Trie -> String -> Int
