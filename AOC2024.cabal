@@ -72,7 +72,6 @@ library
     , comonad
     , containers
     , hashable
-    , maximal-cliques
     , parsers
     , pqueue
     , recursion-schemes
@@ -105,7 +104,6 @@ executable AOC2024-exe
     , comonad
     , containers
     , hashable
-    , maximal-cliques
     , parsers
     , pqueue
     , recursion-schemes
@@ -139,7 +137,6 @@ test-suite AOC2024-test
     , comonad
     , containers
     , hashable
-    , maximal-cliques
     , parsers
     , pqueue
     , recursion-schemes

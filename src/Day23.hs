@@ -3,15 +3,10 @@
 module Day23(day23) where
 
 import Utils
-import Data.List (mapAccumL)
 import qualified Data.Map as M
 import Data.Map (Map)
 import qualified Data.Set as S
 import Data.Set (Set)
---import Data.Algorithm.MaximalCliques
-import Data.IntSet (IntSet)
-import qualified Data.IntSet as I
-import qualified Data.Vector as V
 
 
 parse :: String -> (String, String)
@@ -20,20 +15,21 @@ parse s = (ps!!0, ps!!1)
     ps = splitOn '-' s
 
 
-type Conns = Map String [String]
-type Triple = Set String
+type Node = String
+type Graph = Map Node [Node]
+type Triple = Set Node
+type Clique = Set Node
 
 
-makeMap :: [(String, String)] -> Conns
+makeMap :: [(Node, Node)] -> Graph
 makeMap = go M.empty
   where
-    go :: Map String [String] -> [(String, String)] -> Map String [String]
+    go :: Graph -> [(Node, Node)] -> Graph
     go mp [] = mp
     go mp ((from, to):others) = go (M.insertWith (++) to [from] $ M.insertWith (++) from [to] mp) others
 
 
-groups :: Conns -> Set Triple
---groups mp = S.fromList $ concatMap findSet $ M.keys mp
+groups :: Graph -> Set Triple
 groups mp = S.unions $ S.fromList . findSet <$> M.keys mp
   where
     findSet :: String -> [Triple]
@@ -42,32 +38,36 @@ groups mp = S.unions $ S.fromList . findSet <$> M.keys mp
         ks = mp M.! k
 
 
-hast :: Set String -> Bool
-hast s = any (\e -> 't' == head e) (S.toList s)
+hasT :: Set Node -> Bool
+hasT s = any (\e -> 't' == head e) (S.toList s)
 
 
--- Bron-Kerbosch algorithm - copied from Data.Algorithm.MaximalCliques
-getMaximalCliques :: (a -> a -> Bool) -> [a] -> [[a]]
-getMaximalCliques tolFun xs = ((fst . (V.!) lv) <$>) . I.toList <$>
-                              maximalCliques pickpivot (snd . (V.!) lv) (I.fromList $ map fst lnodes)
-  where 
-    lnodes = zip [0..] xs
-    lnodes' = (\(k,n) -> (n, I.fromList $ filter (/=k) $ map fst $ filter (tolFun n . snd) lnodes)) <$> lnodes
-    lv = V.fromList lnodes'
-    pickpivot p x = head $ I.elems p ++ I.elems x
-
-
-maximalCliques :: (IntSet -> IntSet -> Int) -> (Int -> IntSet) -> IntSet -> [IntSet]
-maximalCliques pickpivot neighborsOf nodeset = go I.empty nodeset I.empty
-  where 
-    go r p x
-      | I.null p && I.null x = [r]
-      | otherwise = concat . snd $ mapAccumL step' (p,x) $ I.elems (p I.\\ neighborsOf pivot)
+-- Double counting, probably
+solve :: Graph -> Set Clique
+solve g = makeCliques (S.fromList $ M.keys g) S.empty
+  where
+    makeCliques :: Set Node -> Set Clique -> Set Clique
+    makeCliques nodes cliques
+      | S.null nodes = cliques 
+      | otherwise = makeCliques remaining (clique `S.insert` cliques)
       where
-        pivot = pickpivot p x
-        step' (p',x') v = ((I.delete v p', I.insert v x'), go (I.insert v r) (I.intersection nv p') (I.intersection nv x'))
-          where
-            nv  = neighborsOf v
+        mv = S.minView nodes
+        (node, otherNodes) = fromJust mv
+        clique = go (S.singleton node)(S.singleton node) (S.fromList $ g M.! node) 
+        remaining = otherNodes S.\\ clique
+    
+    -- Make a clique from a node
+    go :: Set Node -> Clique -> Set Node -> Clique
+    go seen clique queue
+      | isNothing mv = clique
+      | next `S.member` seen = go seen clique others
+      | next `S.member` clique = go seen clique others
+      | isNextConnected = go (next `S.insert` seen) (next `S.insert` clique) others 
+      | otherwise = go (next `S.insert` seen) clique others 
+      where
+        mv = S.minView queue
+        (next, others) = fromJust mv
+        isNextConnected = and $ S.map (\c -> next `elem` g M.! c) clique
 
 
 day23 :: IO ()
@@ -75,10 +75,10 @@ day23 = do
   ss <- getF lines 23
   let g = parse <$> ss
       mp = makeMap g
-      cs = getMaximalCliques (\a b -> a `elem` mp M.! b) $ M.keys mp
 
-
-  putStrLn $ "Day23: part1: " ++ show (S.size $ S.filter hast $ groups mp)
-  putStrLn $ "Day23: part2: " ++  intercalate "," (sort $ last $ sortOn length cs)
+  putStrLn $ "Day23: part1: " ++ show (S.size $ S.filter hasT $ groups mp)
+  putStrLn $ "Day23: part2: " ++  intercalate "," (sort $ S.toList $ last $ sortOn length $ S.toList $ solve mp)
   
   return ()
+
+
