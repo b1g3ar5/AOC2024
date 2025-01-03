@@ -1,7 +1,7 @@
 module Day22(day22) where
 
-import Utils (getLines, times)
-import Data.Bits
+import Utils
+import Data.Bits (Bits(shiftL, xor, shiftR))
 import Data.List (tails)
 import Data.Map (Map)
 import Data.Map qualified as M
@@ -13,7 +13,6 @@ mix a b = a `xor` b
 
 prune :: Int -> Int
 prune x = x `mod` 16777216
---prune x = x .&. 16777215
 
 
 evolve :: Int -> Int
@@ -38,12 +37,13 @@ type Seq = [Int]
 
 -- Given the prices work out all the differences and make a map of
 -- the number of bananas for each difference sequence  
---allScores :: [Int] -> Map Seq Int
-allScores prices = foldl (\mp (ix,v) -> M.insertWith (const id) ix v mp) M.empty diffsPrice
+allScores :: [Int] -> Map Seq Int
+allScores prices = foldl (\mp (ix,v) -> M.insertWith (\_ old -> old) ix v mp) M.empty diffsPrice
+--allScores prices = M.fromListWith (\_ old -> old) diffsPrice
   where
     -- Make a list of all the differeces and the bananas they would offer
-    diffsPrice :: [([Int], Int)]
-    diffsPrice = zip (take 4 <$> tails (differences prices)) $ drop 4 prices
+    diffsPrice :: [(Seq, Int)]
+    diffsPrice = zip (take 4 <$> tails (differences prices)) (drop 4 prices)
 
 
 differences :: [Int] -> [Int]
@@ -52,8 +52,7 @@ differences xs = zipWith (-) xs $ tail xs
 
 -- Make the combined map over all banana sellers
 makeMap :: [Int] -> Map Seq Int
---makeMap xs = M.unionsWith (+) $ allScores . makePrices <$> xs
-makeMap = foldl (\mp -> M.unionWith (+) mp . allScores . makePrices) M.empty
+makeMap xs = M.unionsWith (+) $ allScores . makePrices <$> xs
 
 
 day22 :: IO ()

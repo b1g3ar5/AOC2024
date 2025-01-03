@@ -3,8 +3,6 @@ module Day6(day6) where
 import Utils
 import Data.HashSet (HashSet)
 import Data.HashSet qualified as H
-import Data.Set qualified as S
-
 
 
 parse :: [String] -> (Coord, HashSet Coord, Coord)

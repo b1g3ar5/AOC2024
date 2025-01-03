@@ -2,6 +2,8 @@
 
 Advent of Code 2024 solutions in Haskell
 
+A couple of slow solutions...
+
 
 ### Installation
 

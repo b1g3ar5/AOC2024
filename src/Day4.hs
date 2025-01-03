@@ -34,8 +34,7 @@ find2 mp = length $ filter check $ T.keys mp
 day4 :: IO ()
 day4 = do
   ss <- getLines 4
-  let -- Make a map with * as the default element
-      g = T.fromList '*' $ parseGridWith id ss
+  let g = T.fromList '*' $ parseGridWith id ss
 
   putStrLn $ "Day4: part1: " ++ show (find1 g)
   putStrLn $ "Day4: part2: " ++ show (find2 g)
